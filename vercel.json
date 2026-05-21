@@ -1,4 +1,6 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "cleanUrls": true,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "https://project-management-sgrl.onrender.com/api/$1" },
