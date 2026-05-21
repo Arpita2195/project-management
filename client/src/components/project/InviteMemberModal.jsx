@@ -3,11 +3,16 @@ import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import useProjectStore from '../../store/useProjectStore';
 
+import { useAuth } from '../../context/AuthContext';
+
 const InviteMemberModal = ({ onClose }) => {
+  const { user } = useAuth();
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('member');
   const [loading, setLoading] = useState(false);
-  const { currentProject } = useProjectStore();
+  const { currentProject, setCurrentProject } = useProjectStore();
+
+  if (user?.role !== 'admin') return null;
 
   const handleInvite = async (e) => {
     e.preventDefault();
@@ -16,7 +21,13 @@ const InviteMemberModal = ({ onClose }) => {
 
     setLoading(true);
     try {
-      await api.post(`/projects/${currentProject._id}/invite`, { email, role });
+      const { data } = await api.post(`/projects/${currentProject._id}/invite`, { email, role });
+      if (data.project) {
+        useProjectStore.setState((state) => ({
+          projects: state.projects.map((p) => (p._id === data.project._id ? data.project : p))
+        }));
+        setCurrentProject(data.project, user._id, user);
+      }
       toast.success(`Invitation sent to ${email}`);
       onClose();
     } catch (err) {

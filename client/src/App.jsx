@@ -12,6 +12,8 @@ import ProjectBoard from './pages/ProjectBoard';
 import Members from './pages/Members';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import AdminPanel from './pages/AdminPanel';
+import JoinProject from './pages/JoinProject';
 
 const PAGE_TITLES = {
   '/dashboard': 'Dashboard',
@@ -19,13 +21,16 @@ const PAGE_TITLES = {
   '/members': 'Team Members',
   '/reports': 'Analytics',
   '/settings': 'Settings',
+  '/admin': 'Admin Panel',
 };
 
 import NewTaskModal from './components/task/NewTaskModal';
 import CommandPalette from './components/layout/CommandPalette';
+import useProjectStore from './store/useProjectStore';
 
 const AppLayout = ({ theme, toggleTheme }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const { loadProjects } = useProjectStore();
   const path = window.location.pathname;
   const [showNewTask, setShowNewTask] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -41,6 +46,23 @@ const AppLayout = ({ theme, toggleTheme }) => {
     window.addEventListener('keydown', handleK);
     return () => window.removeEventListener('keydown', handleK);
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadProjects(user._id, user);
+    }
+  }, [user, loadProjects]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+          <span className="text-secondary text-sm font-semibold">Loading your workspace...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) return <Navigate to="/login" replace />;
 
@@ -61,6 +83,7 @@ const AppLayout = ({ theme, toggleTheme }) => {
             <Route path="/members" element={<Members />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings theme={theme} toggleTheme={toggleTheme} />} />
+            <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>
@@ -103,6 +126,7 @@ const App = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/join/:projectId" element={<JoinProject />} />
           <Route path="/*" element={<AppLayout theme={theme} toggleTheme={toggleTheme} />} />
         </Routes>
       </BrowserRouter>

@@ -16,6 +16,7 @@ const commentRoutes = require('./routes/comment.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const activityRoutes = require('./routes/activity.routes');
 const aiRoutes = require('./routes/ai.routes');
+const userRoutes = require('./routes/user.routes');
 
 const app = express();
 const server = http.createServer(app);
@@ -67,6 +68,7 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'OK', uptime: process.uptime() }));

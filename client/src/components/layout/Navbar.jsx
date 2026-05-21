@@ -2,14 +2,16 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useNotifications from '../../hooks/useNotifications';
 import useProjectStore from '../../store/useProjectStore';
+import { useAuth } from '../../context/AuthContext';
 
 const Navbar = ({ title, onNewTask, onMenuClick }) => {
   const [showNotif, setShowNotif] = useState(false);
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
   const { userRole } = useProjectStore();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
-  const isReadOnly = userRole === 'viewer';
+  const isReadOnly = userRole === 'viewer' || user?.role !== 'admin';
 
   return (
     <header className="h-14 flex-shrink-0 bg-surface border-b border-main flex items-center px-4 lg:px-6 gap-3 lg:gap-4">

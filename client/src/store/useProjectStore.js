@@ -8,11 +8,29 @@ const useProjectStore = create((set, get) => ({
   loading: false,
   error: null,
 
-  loadProjects: async () => {
+  loadProjects: async (userId, userObj) => {
     set({ loading: true, error: null });
     try {
       const { data } = await fetchProjects();
-      set({ projects: data.projects, loading: false });
+      const projects = data.projects || [];
+      set({ projects, loading: false });
+      
+      const current = get().currentProject;
+      if (projects.length > 0) {
+        if (!current) {
+          get().setCurrentProject(projects[0], userId, userObj);
+        } else {
+          // Sync currentProject with fetched data if it exists
+          const updated = projects.find(p => p._id === current._id);
+          if (updated) {
+            get().setCurrentProject(updated, userId, userObj);
+          } else {
+            get().setCurrentProject(projects[0], userId, userObj);
+          }
+        }
+      } else {
+        set({ currentProject: null, userRole: null });
+      }
     } catch (err) {
       set({ error: err.message, loading: false });
     }

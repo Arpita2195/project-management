@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import KanbanBoard from '../components/board/KanbanBoard';
 import CalendarBoard from '../components/board/CalendarBoard';
 import ListView from '../components/board/ListView';
+import TimelineView from '../components/board/TimelineView';
 import TaskModal from '../components/task/TaskModal';
 import NewProjectModal from '../components/project/NewProjectModal';
 import LiveSync from '../components/collaboration/LiveSync';
@@ -31,8 +32,10 @@ const ProjectBoard = () => {
   const isNewProject = searchParams.get('new') === '1';
 
   useEffect(() => {
-    loadProjects();
-  }, []);
+    if (user) {
+      loadProjects(user._id, user);
+    }
+  }, [user]);
 
   const project = currentProject || projects[0];
 
@@ -101,7 +104,7 @@ const ProjectBoard = () => {
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Board Tabs */}
       <div className="flex items-center gap-0 px-6 border-b border-white/7 bg-surface">
-        {['kanban', 'list', 'calendar'].map((tab) => (
+        {['kanban', 'list', 'calendar', 'timeline'].map((tab) => (
           <button
             key={tab}
             onClick={() => setBoardTab(tab)}
@@ -110,7 +113,7 @@ const ProjectBoard = () => {
                 ? 'border-accent text-accent'
                 : 'border-transparent text-secondary hover:text-primary'}`}
           >
-            {tab === 'kanban' ? '📋' : tab === 'calendar' ? '📅' : '📄'} {tab}
+            {tab === 'kanban' ? '📋' : tab === 'calendar' ? '📅' : tab === 'timeline' ? '⏳' : '📄'} {tab}
           </button>
         ))}
         <div className="ml-auto flex items-center gap-4 py-2">
@@ -187,6 +190,17 @@ const ProjectBoard = () => {
       {boardTab === 'calendar' && (
         <div className="flex-1 overflow-hidden">
           <CalendarBoard
+            onTaskClick={(task) => setSelectedTask(task._id)}
+            filter={activeFilter}
+          />
+        </div>
+      )}
+
+      {/* Timeline View */}
+      {boardTab === 'timeline' && (
+        <div className="flex-1 overflow-hidden">
+          <TimelineView
+            projectId={project._id}
             onTaskClick={(task) => setSelectedTask(task._id)}
             filter={activeFilter}
           />

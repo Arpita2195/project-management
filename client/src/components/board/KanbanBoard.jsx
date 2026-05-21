@@ -30,7 +30,7 @@ const KanbanBoard = ({ projectId, onTaskClick, filter }) => {
   const { socket } = useSocket();
   const [activeTask, setActiveTask] = useState(null);
 
-  const isReadOnly = userRole === 'viewer';
+  const isReadOnly = userRole === 'viewer' || user?.role !== 'admin';
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 3 } }));
 

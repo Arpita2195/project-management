@@ -20,6 +20,13 @@ const projectSchema = new mongoose.Schema(
     icon: { type: String, default: '📋' },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     members: [memberSchema],
+    pendingInvites: [
+      {
+        email: { type: String, required: true },
+        role: { type: String, enum: ['admin', 'member', 'viewer'], default: 'member' },
+        invitedAt: { type: Date, default: Date.now },
+      }
+    ],
     columns: {
       type: [columnSchema],
       default: [

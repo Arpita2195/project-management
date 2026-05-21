@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { registerUser } from '../api/auth.api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const Register = () => {
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [searchParams] = useSearchParams();
+  const emailParam = searchParams.get('email') || '';
+  const [form, setForm] = useState({ name: '', email: emailParam, password: '' });
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -17,7 +19,13 @@ const Register = () => {
       const { data } = await registerUser(form);
       login(data.user, data.accessToken, data.refreshToken);
       toast.success('Account created!');
-      navigate('/dashboard');
+      const dest = localStorage.getItem('pendingJoin');
+      if (dest) {
+        localStorage.removeItem('pendingJoin');
+        navigate(dest);
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed');
     } finally {

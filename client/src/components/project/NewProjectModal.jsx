@@ -10,6 +10,8 @@ const NewProjectModal = ({ onClose }) => {
   const [color, setColor] = useState('#6C63FF');
   const [loading, setLoading] = useState(false);
 
+  if (user?.role !== 'admin') return null;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) return toast.error('Project name is required');

@@ -3,11 +3,16 @@ import useTaskStore from '../../store/useTaskStore';
 import useProjectStore from '../../store/useProjectStore';
 import toast from 'react-hot-toast';
 
+import { useAuth } from '../../context/AuthContext';
+
 const NewTaskModal = ({ onClose }) => {
+  const { user } = useAuth();
   const { addTask } = useTaskStore();
   const { currentProject, projects } = useProjectStore();
   
   const defaultProjectId = currentProject?._id || projects[0]?._id;
+
+  if (user?.role !== 'admin') return null;
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');

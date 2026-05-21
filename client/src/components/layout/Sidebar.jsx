@@ -60,6 +60,7 @@ const Sidebar = ({ theme, toggleTheme, isOpen, onClose }) => {
             { to: '/members', icon: '👥', label: 'Members' },
             { to: '/reports', icon: '📊', label: 'Reports' },
             { to: '/settings', icon: '⚙️', label: 'Settings' },
+            ...(user?.role === 'admin' ? [{ to: '/admin', icon: '🛡️', label: 'Admin Panel' }] : []),
           ].map(({ to, icon, label }) => (
             <NavLink key={to} to={to} onClick={() => { if (window.innerWidth < 1024) onClose(); }}
               className={({ isActive }) =>
@@ -76,7 +77,10 @@ const Sidebar = ({ theme, toggleTheme, isOpen, onClose }) => {
               key={p._id}
               onClick={() => { 
                 setCurrentProject(p, user?._id, user); 
-                navigate('/board'); 
+                const projectPaths = ['/board', '/members', '/reports', '/settings'];
+                if (!projectPaths.includes(window.location.pathname)) {
+                  navigate('/board'); 
+                }
                 if (window.innerWidth < 1024) onClose();
               }}
               className={`flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer text-sm font-medium mb-0.5 transition-all
@@ -87,12 +91,14 @@ const Sidebar = ({ theme, toggleTheme, isOpen, onClose }) => {
             </div>
           ))}
 
-          <button
-            onClick={() => { navigate('/board?new=1'); if (window.innerWidth < 1024) onClose(); }}
-            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm text-secondary hover:text-accent border border-dashed border-main hover:border-accent/40 transition-all mt-2"
-          >
-            + New Project
-          </button>
+          {user?.role === 'admin' && (
+            <button
+              onClick={() => { navigate('/board?new=1'); if (window.innerWidth < 1024) onClose(); }}
+              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm text-secondary hover:text-accent border border-dashed border-main hover:border-accent/40 transition-all mt-2"
+            >
+              + New Project
+            </button>
+          )}
         </nav>
 
         {/* Footer */}

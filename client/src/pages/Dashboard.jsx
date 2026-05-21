@@ -9,14 +9,16 @@ const Dashboard = () => {
   const { tasks, loadTasks, loadAllTasks } = useTaskStore();
 
   useEffect(() => {
-    loadProjects();
-  }, []);
+    if (user) {
+      loadProjects(user._id, user);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (projects.length > 0) {
       loadAllTasks(projects.map(p => p._id));
     }
-  }, [projects.length]);
+  }, [projects, loadAllTasks]);
 
   const done = tasks.filter((t) => t.column === 'Done').length;
   const today = new Date().toISOString().slice(0, 10);
@@ -65,7 +67,8 @@ const Dashboard = () => {
             projects.map((p) => {
               const ptasks = tasks.filter((t) => t.project === p._id || t.project?._id === p._id);
               const pdone = ptasks.filter((t) => t.column === 'Done').length;
-              const pct = ptasks.length ? Math.round((pdone / ptasks.length) * 100) : 0;
+              const totalProgress = ptasks.reduce((sum, t) => sum + (t.progress || 0), 0);
+              const pct = ptasks.length ? Math.round(totalProgress / ptasks.length) : 0;
               return (
                 <div key={p._id} className="py-3 border-b border-main last:border-0">
                   <div className="flex items-center justify-between mb-2">

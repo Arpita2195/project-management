@@ -9,9 +9,12 @@ import toast from 'react-hot-toast';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
+import { useAuth } from '../../context/AuthContext';
+
 const TaskModal = ({ taskId, onClose }) => {
   const { editTask } = useTaskStore();
   const { userRole } = useProjectStore();
+  const { user } = useAuth();
   const [task, setTask] = useState(null);
   const [comments, setComments] = useState([]);
   const [activities, setActivities] = useState([]);
@@ -19,7 +22,9 @@ const TaskModal = ({ taskId, onClose }) => {
   const [activeTab, setActiveTab] = useState('comments'); // 'comments' or 'history'
   const [isCommenting, setIsCommenting] = useState(false);
 
-  const isReadOnly = userRole === 'viewer';
+  const isReadOnly = userRole === 'viewer' || user?.role !== 'admin';
+  const isAssignee = task?.assignees?.some(a => (a._id || a).toString() === user?._id?.toString());
+  const canEditChecklist = !isReadOnly || isAssignee;
 
   useEffect(() => {
     if (!taskId) return;
@@ -29,12 +34,13 @@ const TaskModal = ({ taskId, onClose }) => {
   }, [taskId]);
 
   const handleUpdate = async (field, value) => {
+    if (isReadOnly && field !== 'progress') return;
     setTask((prev) => ({ ...prev, [field]: value }));
     await editTask(taskId, { [field]: value });
   };
 
   const handleChecklistToggle = async (index) => {
-    if (isReadOnly) return;
+    if (!canEditChecklist) return;
     const newChecklist = [...task.checklist];
     newChecklist[index].done = !newChecklist[index].done;
     
@@ -47,7 +53,7 @@ const TaskModal = ({ taskId, onClose }) => {
   };
 
   const addChecklistItem = async (text) => {
-    if (!text.trim() || isReadOnly) return;
+    if (!text.trim() || !canEditChecklist) return;
     const newChecklist = [...(task.checklist || []), { text, done: false }];
     
     // Auto-calculate progress
@@ -59,7 +65,7 @@ const TaskModal = ({ taskId, onClose }) => {
   };
 
   const removeChecklistItem = async (index) => {
-    if (isReadOnly) return;
+    if (!canEditChecklist) return;
     const newChecklist = task.checklist.filter((_, i) => i !== index);
     
     // Auto-calculate progress
@@ -245,12 +251,12 @@ const TaskModal = ({ taskId, onClose }) => {
                       checked={item.done} 
                       onChange={() => handleChecklistToggle(i)}
                       className="w-4 h-4 rounded border-main bg-transparent text-accent focus:ring-accent accent-accent" 
-                      disabled={isReadOnly} 
+                      disabled={!canEditChecklist} 
                     />
                     <span className={`flex-1 text-sm transition-all ${item.done ? 'line-through text-secondary/50' : 'text-primary'}`}>
                       {item.text}
                     </span>
-                    {!isReadOnly && (
+                    {canEditChecklist && (
                       <button 
                         onClick={() => removeChecklistItem(i)}
                         className="opacity-0 group-hover:opacity-100 text-secondary hover:text-accent2 transition-all text-xs"
@@ -262,7 +268,7 @@ const TaskModal = ({ taskId, onClose }) => {
                 ))}
               </div>
 
-              {!isReadOnly && (
+              {canEditChecklist && (
                 <div className="mt-3 flex gap-2">
                   <input
                     type="text"
@@ -456,7 +462,7 @@ const TaskModal = ({ taskId, onClose }) => {
               defaultValue={task.progress}
               className="w-full accent-accent"
               onChange={(e) => handleUpdate('progress', parseInt(e.target.value))}
-              disabled={isReadOnly}
+              disabled={!canEditChecklist}
             />
             <div className="text-xs text-accent font-bold mt-1">{task.progress}%</div>
           </div>

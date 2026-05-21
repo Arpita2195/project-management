@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { loginUser } from '../api/auth.api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const Login = () => {
-  const [form, setForm] = useState({ email: 'arpita@demo.com', password: 'demo123' });
+  const [searchParams] = useSearchParams();
+  const emailParam = searchParams.get('email') || '';
+  const [form, setForm] = useState({ email: emailParam || 'arpita@demo.com', password: 'demo123' });
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -17,7 +19,13 @@ const Login = () => {
       const { data } = await loginUser(form);
       login(data.user, data.accessToken, data.refreshToken);
       toast.success(`Welcome back, ${data.user.name}!`);
-      navigate('/dashboard');
+      const dest = localStorage.getItem('pendingJoin');
+      if (dest) {
+        localStorage.removeItem('pendingJoin');
+        navigate(dest);
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed');
     } finally {

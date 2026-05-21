@@ -24,7 +24,7 @@ const ListView = ({ projectId, onTaskClick, filter }) => {
   const { userRole } = useProjectStore();
   const { socket } = useSocket();
 
-  const isReadOnly = userRole === 'viewer';
+  const isReadOnly = userRole === 'viewer' || user?.role !== 'admin';
 
   useEffect(() => {
     if (projectId) loadTasks(projectId);
