@@ -38,9 +38,9 @@ const createUser = async (req, res, next) => {
 // @PUT /api/users/:id
 const updateUser = async (req, res, next) => {
   try {
-    const { name, email, role } = req.body;
-    const user = await User.findById(req.params.id);
-    
+    const { name, email, role, password } = req.body;
+    const user = await User.findById(req.params.id).select('+password');
+
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
@@ -50,9 +50,17 @@ const updateUser = async (req, res, next) => {
     if (role) {
       user.role = role;
     }
-    
+
+    // Allow admin to update password (model pre-save hook will hash it)
+    if (password) {
+      if (password.length < 6) {
+        return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+      }
+      user.password = password;
+    }
+
     await user.save();
-    res.json({ success: true, user });
+    res.json({ success: true, user: user.toJSON() });
   } catch (err) {
     next(err);
   }
