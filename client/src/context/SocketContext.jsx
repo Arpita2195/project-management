@@ -12,7 +12,12 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (!user) return;
 
-    const socketUrl = import.meta.env.VITE_API_URL || '/';
+    let socketUrl = import.meta.env.VITE_API_URL;
+    if (!socketUrl) {
+      socketUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:5000'
+        : 'https://project-management-sgrl.onrender.com';
+    }
     const socket = io(socketUrl, {
       auth: { userId: user._id },
       transports: ['websocket'],

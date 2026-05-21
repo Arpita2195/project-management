@@ -20,15 +20,37 @@ const aiRoutes = require('./routes/ai.routes');
 const app = express();
 const server = http.createServer(app);
 
+// Dynamic CORS configuration to support localhost, Vercel deployments, and custom domains
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const isAllowed =
+      origin.startsWith('http://localhost') ||
+      origin.endsWith('.vercel.app') ||
+      (process.env.CLIENT_URL && origin === process.env.CLIENT_URL) ||
+      (process.env.CLIENT_URL && origin === process.env.CLIENT_URL.replace(/\/$/, ''));
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
 // Socket.io
 const io = new Server(server, {
-  cors: { origin: process.env.CLIENT_URL, methods: ['GET', 'POST'] },
+  cors: {
+    origin: corsOptions.origin,
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
 });
 initSocket(io);
 app.set('io', io); // make io accessible in controllers
 
 // Middleware
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));

@@ -1,7 +1,16 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return `${import.meta.env.VITE_API_URL}/api`;
+  }
+  return window.location.hostname === 'localhost'
+    ? 'http://localhost:5000/api'
+    : 'https://project-management-sgrl.onrender.com/api';
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: getBaseURL(),
   withCredentials: true,
 });
 
@@ -24,7 +33,11 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       try {
         const refreshToken = localStorage.getItem('refreshToken');
-        const apiURL = import.meta.env.VITE_API_URL || '';
+        const apiURL = import.meta.env.VITE_API_URL || (
+          window.location.hostname === 'localhost'
+            ? 'http://localhost:5000'
+            : 'https://project-management-sgrl.onrender.com'
+        );
         const { data } = await axios.post(`${apiURL}/api/auth/refresh`, { refreshToken });
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
