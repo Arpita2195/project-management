@@ -12,7 +12,8 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const seed = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    const dbUri = process.env.MONGODB_URI || 'mongodb+srv://arpitanathwani2155_db_user:Arpu2192005%40@cluster0.ggvnpjj.mongodb.net/taskflow?retryWrites=true&w=majority';
+    await mongoose.connect(dbUri);
     console.log('Connected to MongoDB for seeding...');
 
     // Clear existing demo data
